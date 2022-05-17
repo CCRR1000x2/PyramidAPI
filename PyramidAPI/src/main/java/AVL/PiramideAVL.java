@@ -1,154 +1,181 @@
+
 package AVL;
 
 public class PiramideAVL {
     
     private Naipe raiz;
-
-    public PiramideAVL(Naipe raiz) {
+    private Recorrido recorrido;
+    
+    public PiramideAVL() {
         this.setRaiz(null);
-    }
-    
-    //Insertar nodo
-    
-    //Buscar nodo
-    public Naipe buscarCarta(String carta, Naipe nodo) {
-        
-        Naipe nuevaCarta = new Naipe(carta);
-
-        if (nodo == null) {
-            return null;
-        } else if(nuevaCarta.valor == nodo.valor) {
-            return nodo;
-        } else if(nodo.valor < nuevaCarta.valor) {
-            return buscarCarta(carta, nodo.hijoDerecho);
-        } else {
-            return buscarCarta(carta, nodo.hijoIzquierdo);
-        }
+        this.setRecorrido(new Recorrido(this));
     }
     
     public int obtenerFE(Naipe nodo) {
         if (nodo == null) {
             return -1;
         } else {
-            return nodo.fe;
+            return nodo.getFe();
         }
     }
     
+    //ROTACIONES
     //Rotación Simple Izquierda
     public Naipe rotacionIzquierda(Naipe c) {
-        Naipe auxiliar = c.hijoIzquierdo;
-        c.hijoIzquierdo = auxiliar.hijoDerecho;
-        auxiliar.hijoDerecho = c;
-        c.fe = Math.max(obtenerFE(c.hijoIzquierdo), obtenerFE(c.hijoDerecho))+1;
-        auxiliar.fe = Math.max(obtenerFE(auxiliar.hijoIzquierdo), obtenerFE(auxiliar.hijoDerecho))+1;
-        return auxiliar;
+        Rotacion rotacion = new Rotacion();
+        return rotacion.izquierdaSimple(this, c);
     }
     
     //Rotación Simple Derecha
     public Naipe rotacionDerecha(Naipe c) {
-        Naipe auxiliar = c.hijoDerecho;
-        c.hijoDerecho = auxiliar.hijoIzquierdo;
-        auxiliar.hijoIzquierdo = c;
-        c.fe = Math.max(obtenerFE(c.hijoIzquierdo), obtenerFE(c.hijoDerecho))+1;
-        auxiliar.fe = Math.max(obtenerFE(auxiliar.hijoIzquierdo), obtenerFE(auxiliar.hijoDerecho))+1;
-        return auxiliar;
+        Rotacion rotacion = new Rotacion();
+        return rotacion.derechaSimple(this, c);
     }
     
     //Rotacion Doble a la Derecha
     public Naipe rotacionDobleIzquierda(Naipe c) {
-        Naipe temporal;
-        c.hijoIzquierdo = rotacionDerecha(c.hijoIzquierdo);
-        temporal = rotacionIzquierda(c);
-        return temporal;
+        Rotacion rotacion = new Rotacion();
+        return rotacion.izquierdaDoble(this, c);
     }
 
     // Rotación Doble a la Izquierda
     public Naipe rotacionDobleDerecha(Naipe c) {
-        Naipe temporal;
-        c.hijoDerecho = rotacionIzquierda(c.hijoDerecho);
-        temporal = rotacionDerecha(c);
-        return temporal;
+        Rotacion rotacion = new Rotacion();
+        return rotacion.derechaDoble(this, c);
+    }
+    
+    //Insertar
+    public void insertarNaipe(Naipe naipe) {
+        
+        if (this.raiz==null) {
+            this.raiz = naipe;
+        } else {
+            this.raiz = insertar(naipe, raiz);
+        }
     }
 
     public Naipe insertar(Naipe nuevo, Naipe subAr) {
-        Naipe nuevoPadre = subAr;
-        if (nuevo.valor < subAr.valor) {
-            if (subAr.hijoIzquierdo == null) {
-                subAr.hijoIzquierdo = nuevo;
-            } else {
-                subAr.hijoIzquierdo = insertar(nuevo, subAr.hijoIzquierdo);
-                if ((obtenerFE(subAr.hijoIzquierdo) - obtenerFE(subAr.hijoDerecho) == 2)) {
-                    if (nuevo.valor < subAr.hijoIzquierdo.valor) {
-                        nuevoPadre = rotacionIzquierda(subAr);
-                    } else {
-                        nuevoPadre = rotacionDobleIzquierda(subAr);
-                    }
+        
+        if (subAr==null) {
+            return nuevo;
+        }
+
+        // El nodo es menor
+        if (nuevo.getValor() < subAr.getValor()) {
+            subAr.setHijoIzquierdo(insertar(nuevo, subAr.getHijoIzquierdo()));
+            if ((obtenerFE(subAr.getHijoIzquierdo()) - obtenerFE(subAr.getHijoDerecho()) == 2)) {
+                if (nuevo.getValor() < subAr.getHijoIzquierdo().getValor()) {
+                    subAr = rotacionIzquierda(subAr);
+                } else {
+                    subAr = rotacionDobleIzquierda(subAr);
                 }
             }
-
-        } else if (nuevo.valor > subAr.valor) {
-            if (subAr.hijoDerecho == null) {
-                subAr.hijoDerecho = nuevo;
-            } else {
-                subAr.hijoDerecho = insertar(nuevo, subAr.hijoDerecho);
-                if ((obtenerFE(subAr.hijoDerecho)-obtenerFE(subAr.hijoIzquierdo)==2)) {
-                    if (nuevo.valor > subAr.hijoDerecho.valor) {
-                        nuevoPadre = rotacionDerecha(subAr);
-                    } else {
-                        nuevoPadre = rotacionDobleDerecha(subAr);
-                    }
+        // El nodo es mayor
+        } else if (nuevo.getValor() > subAr.getValor()) {
+            subAr.setHijoDerecho(insertar(nuevo, subAr.getHijoDerecho()));
+            if ((obtenerFE(subAr.getHijoDerecho())-obtenerFE(subAr.getHijoIzquierdo())==2)) {
+                if (nuevo.getValor() > subAr.getHijoDerecho().getValor()) {
+                    subAr = rotacionDerecha(subAr);
+                } else {
+                    subAr = rotacionDobleDerecha(subAr);
                 }
             }
-
         } else {
-            System.out.println("Nodo Duplicado");
+            return subAr;
         }
 
         // Actualizando la altura
-        if ((subAr.hijoIzquierdo == null) && (subAr.hijoDerecho != null)) {
-            subAr.fe = subAr.hijoDerecho.fe+1;
-        } else if ((subAr.hijoDerecho == null) && (subAr.hijoIzquierdo != null)) {
-            subAr.fe = subAr.hijoIzquierdo.fe + 1;
+        if ((subAr.getHijoIzquierdo() == null) && (subAr.getHijoDerecho() != null)) {
+            subAr.setFe(subAr.getHijoDerecho().getFe()+1);
+        } else if ((subAr.getHijoDerecho() == null) && (subAr.getHijoIzquierdo() != null)) {
+            subAr.setFe(subAr.getHijoIzquierdo().getFe() + 1);
         } else {
-            subAr.fe = Math.max(obtenerFE(subAr.hijoIzquierdo), obtenerFE(subAr.hijoDerecho)) + 1;
+            subAr.setFe(Math.max(obtenerFE(subAr.getHijoIzquierdo()), obtenerFE(subAr.getHijoDerecho())) + 1);
         }
-    
-        return nuevoPadre;
+        return subAr;
     }
 
-    //Insertar
-    public void insertar1(String d) {
-        Naipe nuevo = new Naipe(d);
-        if (raiz==null) {
-            raiz = nuevo;
-        } else {
-            raiz = insertar(nuevo, raiz);
+    public boolean isHojaPiramide(Naipe naipe, Naipe temp) {
+        
+        if (temp!=null) {
+            if (naipe.getValor()<temp.getValor()) {
+                return isHojaPiramide(naipe, temp.getHijoIzquierdo());
+            } else if (naipe.getValor()>temp.getValor()) {
+                return isHojaPiramide(naipe, temp.getHijoDerecho());
+            } else {
+                if (temp.isHoja()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
+        return false;
     }
 
-    //Recorridos
-    public void inOrden(Naipe r) {
-        if (r != null) {
-            inOrden(r.hijoIzquierdo);
-            System.out.println(r.valor + ", ");
-            inOrden(r.hijoDerecho);
+    public void eliminarNaipe(Naipe naipe) {
+        
+        if (naipe.getValor() == this.raiz.getValor()) {
+            if (this.raiz.isHoja()) {
+                this.raiz = null;
+                //return true;
+            } else {
+                //return false;
+            }
         }
+        eliminar(naipe, this.raiz);
     }
 
-    public void preOrden(Naipe r) {
-        if (r != null) {
-            System.out.println(r.valor + ", ");
-            preOrden(r.hijoIzquierdo);
-            preOrden(r.hijoDerecho);
+    private void eliminar(Naipe naipe, Naipe padre) {
+        
+        if (padre!=null) {
+            if (naipe.getValor() < padre.getValor()) {
+                if (naipe.getValor() == padre.getHijoIzquierdo().getValor()) {
+                    padre.setHijoIzquierdo(null);
+                    
+                } else {
+                    eliminar(naipe, padre.getHijoIzquierdo());
+                }
+            } else if (naipe.getValor() > padre.getValor()) {
+                if (naipe.getValor() == padre.getHijoDerecho().getValor()) {
+                    padre.setHijoDerecho(null);
+                    
+                } else {
+                    eliminar(naipe, padre.getHijoDerecho());
+                }
+            } 
         }
+        
     }
 
-    public void postOrden(Naipe r) {
-        if (r != null) {
-            preOrden(r.hijoIzquierdo);
-            preOrden(r.hijoDerecho);
-            System.out.println(r.valor + ", ");
+    public String[][] getMatriz(String cadena) {
+
+        cadena = cadena.replaceAll("\\s", "");
+        cadena = cadena.replace("{", "");
+        cadena = cadena.replace("}", "");
+        cadena = cadena.replace("\"", "");
+        
+        String[] filas = cadena.split(",");
+        String[][] matriz = new String[filas.length][2];
+
+        for (int i = 0; i < matriz.length; i++) {
+            matriz[i] = filas[i].split(":");
         }
+
+        return matriz;
+    }
+
+    public boolean isDuplicado(Naipe naipe, Naipe raiz) {
+
+        String cadenaCartas = this.recorrido.cadenaInOrder(raiz, "");
+        String[] cartas = cadenaCartas.split(",");
+
+        for (int i = 0; i < cartas.length; i++) {
+            if (naipe.getId().equals(cartas[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Naipe getRaiz() {
@@ -158,4 +185,14 @@ public class PiramideAVL {
     public void setRaiz(Naipe raiz) {
         this.raiz = raiz;
     }
+
+    public Recorrido getRecorrido() {
+        return recorrido;
+    }
+
+    public void setRecorrido(Recorrido recorrido) {
+        this.recorrido = recorrido;
+    }
+
+    
 }
